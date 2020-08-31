@@ -14,13 +14,20 @@ declare(strict_types=1);
 namespace Sonata\SeoBundle\Tests\Block\Breadcrumb;
 
 use Knp\Menu\FactoryInterface;
+use Knp\Menu\MenuFactory;
 use Knp\Menu\Provider\MenuProviderInterface;
+use Sonata\BlockBundle\Block\BlockContextInterface;
 use Sonata\BlockBundle\Test\BlockServiceTestCase;
 use Sonata\SeoBundle\Block\Breadcrumb\BaseBreadcrumbMenuBlockService;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class BreadcrumbMenuBlockService_Test extends BaseBreadcrumbMenuBlockService
 {
+    protected function getMenu(BlockContextInterface $blockContext)
+    {
+        return $this->getRootMenu($blockContext);
+    }
 }
 
 /**
@@ -39,5 +46,26 @@ class BreadcrumbTest extends BlockServiceTestCase
         );
 
         $this->assertTrue($blockService->handleContext('context'));
+    }
+
+    /**
+     * @doesNotPerformAssertions
+     */
+    public function testGetMenu(): void
+    {
+        $blockService = new BreadcrumbMenuBlockService_Test(
+            'context',
+            'name',
+            $this->createStub(EngineInterface::class),
+            $this->createStub(MenuProviderInterface::class),
+            new MenuFactory(),
+        );
+
+        $context = $this->createStub(BlockContextInterface::class);
+        $context->method('getSettings')->willReturn([
+            'current_uri' => '/foo/bar',
+            'include_homepage_link' => false,
+        ]);
+        $blockService->execute($context, new Response());
     }
 }
